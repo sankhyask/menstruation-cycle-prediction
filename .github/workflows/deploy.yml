@@ -141,3 +141,4 @@ jobs:
           echo "Frontend: https://foresee-cycles.web.app"
           echo "Backend: ${{ needs.deploy-backend.outputs.url }}"
           echo "Release: ${{ github.ref }}"
+          echo "Google Cloud Run deployment successful!"
