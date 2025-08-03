@@ -10,7 +10,7 @@ on:
     tags:
       - 'v*' # Triggers on a new version tag (e.g., v1.0.0)
     paths:
-      - 'frontend/**'
+      - 'lib/**'
       - '.github/workflows/frontend.yml'
 
 jobs:
