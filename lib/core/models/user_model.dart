@@ -52,4 +52,4 @@ class UserModel {
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
   }
-} 
+}

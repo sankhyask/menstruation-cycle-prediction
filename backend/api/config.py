@@ -15,4 +15,4 @@ class Config:
     RATELIMIT_STORAGE_URL = "memory://"
     
     # CORS settings
-    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',') 
+    CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')

@@ -1,135 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:foresee_cycles/core/services/auth_service.dart';
+import 'package:foresee_cycles/shared/widgets/custom_app_bar.dart';
 
-import 'package:foresee_cycles/utils/styles.dart';
-import 'package:foresee_cycles/pages/auth/login.dart';
+// Provider to manage the loading state for the "Send" button.
+final forgotPasswordLoadingProvider = StateProvider<bool>((ref) => false);
 
-class ForgotPasswordScreen extends StatelessWidget {
-  final _formKey = GlobalKey<FormState>();
-  final nameController = TextEditingController();
+// Convert to a ConsumerStatefulWidget to use Riverpod.
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
+  const ForgotPasswordScreen({super.key});
+
+  @override
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  // Refactored logic to send the password reset email.
+  Future<void> _sendResetEmail() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    ref.read(forgotPasswordLoadingProvider.notifier).state = true;
+
+    try {
+      // Call the method from our AuthService.
+      await ref.read(authServiceProvider).sendPasswordResetEmail(
+            email: _emailController.text.trim(),
+          );
+
+      // On success, show a confirmation message and pop the screen.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password reset email sent! Please check your inbox.')),
+      );
+      Navigator.of(context).pop();
+
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "An unknown error occurred")),
+      );
+    } finally {
+      ref.read(forgotPasswordLoadingProvider.notifier).state = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    Size screenSize = MediaQuery.of(context).size;
+    // Watch the loading provider.
+    final isLoading = ref.watch(forgotPasswordLoadingProvider);
+
     return Scaffold(
-      body: Column(
-          children: <Widget>[
-            Container(
-              height: screenSize.height * 0.18,
-              color: CustomColors.primaryColor,
-              child: Padding(
-                padding: EdgeInsets.only(top: screenSize.height * 0.02),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()));
-                  },
-                  child: Row(
-                    children: <Widget>[
-                      Icon(
-                        Icons.keyboard_arrow_left,
-                        color: CustomColors.secondaryColor,
-                        size: screenSize.width * 0.08,
-                      ),
-                      Text(
-                        'Back',
-                        style: TextStyle(
-                          fontSize: screenSize.width * 0.055,
-                          color: CustomColors.secondaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+      // Use the reusable CustomAppBar we created earlier.
+      appBar: const CustomAppBar(title: 'Forgot Password'),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              const Text(
+                "Forgot password",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Enter your email address below and we'll send you an email with instructions on how to change your password.",
+                style: TextStyle(fontSize: 15),
+              ),
+              const SizedBox(height: 30),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  hintText: 'Enter your email',
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter your email';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 50),
+              SizedBox(
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _sendResetEmail,
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('SEND'),
                 ),
               ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Expanded(
-              child: ListView(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 30, right: 30),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Text(
-                            "Forgot password",
-                            style: Theme.of(context).textTheme.headline6.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).textTheme.headline6.color,
-                                fontSize: 28),
-                          ),
-                          SizedBox(
-                            height: 20,
-                          ),
-                          Text(
-                                "Enter your email address below and we'll\nsend you an email with instructions on how\nto change your password",
-                            style: Theme.of(context).textTheme.headline6.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).textTheme.headline6.color,
-                                fontSize: 15),
-                          ),
-                          SizedBox(
-                            height: 30,
-                          ),
-                          TextFormField(
-                            controller: nameController,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return 'email cannot be empty';
-                              }
-                              return "";
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Enter your email',
-                              labelStyle: TextStyle(color: Colors.black26, fontSize: 8),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 50,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
-                              child: GestureDetector(
-                                child: Container(
-                                  height: 50.0,
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                      color: CustomColors.primaryColor,
-                                      borderRadius: BorderRadius.all(Radius.circular(20))
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      'send'.toUpperCase(),
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: screenSize.width * 0.06,
-                                          fontWeight: FontWeight.bold
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                onTap: () {
-                                  print("Forgot Password Button Pressed");
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          ],
-        )
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -23,15 +23,17 @@ class PredictionModel {
 
   factory PredictionModel.fromMap(Map<String, dynamic> map) {
     return PredictionModel(
-      id: map['id'] ?? '',
-      userId: map['userId'] ?? '',
-      age: map['age']?.toInt() ?? 0,
-      weight: map['weight']?.toDouble() ?? 0.0,
-      height: map['height']?.toDouble() ?? 0.0,
-      bmi: map['bmi']?.toDouble() ?? 0.0,
-      prediction: map['prediction']?.toInt() ?? 0,
-      confidence: map['confidence']?.toDouble(),
-      createdAt: DateTime.parse(map['createdAt']),
+      id: map['id'] as String? ?? '',
+      userId: map['userId'] as String? ?? '',
+      age: map['age'] as int? ?? 0,
+      weight: map['weight'] as double? ?? 0.0,
+      height: map['height'] as double? ?? 0.0,
+      bmi: map['bmi'] as double? ?? 0.0,
+      prediction: map['prediction'] as int? ?? 0,
+      confidence: map['confidence'] as double?,
+      createdAt: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'] as String)
+          : DateTime.now(),
     );
   }
 
@@ -72,4 +74,4 @@ class PredictionModel {
       createdAt: createdAt ?? this.createdAt,
     );
   }
-} 
+}
