@@ -2,7 +2,7 @@
 
 ## 🚀 Overview
 
-This project includes a comprehensive CI/CD pipeline that automates testing, building, and deployment for both the Flutter frontend and Python backend.
+This project includes a comprehensive CI/CD pipeline that automates testing, building, and deployment for both the Flutter frontend and Python backend using Google Cloud Platform.
 
 ## 📋 Pipeline Components
 
@@ -18,8 +18,8 @@ This project includes a comprehensive CI/CD pipeline that automates testing, bui
 - ✅ **Code quality** (flake8, black formatting)
 - ✅ **Security scanning** (safety, bandit)
 - ✅ **ML model testing** (model loading, API endpoints)
-- ✅ **Heroku deployment** (Container deployment)
-- ✅ **Docker builds** (Docker Hub integration)
+- ✅ **Google Cloud Run deployment** (Serverless containers)
+- ✅ **Google Container Registry** (Docker image storage)
 
 ### 3. **Production Deployment** (`.github/workflows/deploy.yml`)
 - ✅ **Tag-based releases** (v1.0.0, v1.1.0, etc.)
@@ -38,16 +38,16 @@ Add these secrets to your GitHub repository (`Settings > Secrets and variables >
 FIREBASE_TOKEN=your_firebase_token
 ```
 
-#### **Heroku Secrets**
+#### **Google Cloud Platform Secrets**
 ```
-HEROKU_API_KEY=your_heroku_api_key
-HEROKU_APP_NAME=your_heroku_app_name
+GCP_PROJECT_ID=your_gcp_project_id
+GCP_SA_KEY=your_service_account_key_json
+GCP_REGION=us-central1
 ```
 
-#### **Docker Secrets** (Optional)
+#### **Optional Secrets**
 ```
-DOCKER_USERNAME=your_docker_username
-DOCKER_PASSWORD=your_docker_password
+CODECOV_TOKEN=your_codecov_token
 ```
 
 ### **Step 2: Firebase Setup**
@@ -72,19 +72,51 @@ DOCKER_PASSWORD=your_docker_password
    firebase login:ci
    ```
 
-### **Step 3: Heroku Setup**
+### **Step 3: Google Cloud Platform Setup**
 
-1. **Create Heroku app:**
+1. **Create a GCP Project:**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing one
+   - Note your Project ID
+
+2. **Enable Required APIs:**
    ```bash
-   heroku create your-app-name
+   gcloud services enable cloudbuild.googleapis.com
+   gcloud services enable run.googleapis.com
+   gcloud services enable containerregistry.googleapis.com
    ```
 
-2. **Get Heroku API key:**
-   - Go to Heroku Dashboard > Account Settings > API Key
-
-3. **Set up container registry:**
+3. **Create Service Account:**
    ```bash
-   heroku container:login
+   # Create service account
+   gcloud iam service-accounts create github-actions \
+     --display-name="GitHub Actions Service Account"
+
+   # Grant necessary roles
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/run.admin"
+
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/storage.admin"
+
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/cloudbuild.builds.builder"
+
+   # Create and download key
+   gcloud iam service-accounts keys create key.json \
+     --iam-account=github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com
+   ```
+
+4. **Set up Cloud Run:**
+   ```bash
+   # Enable Cloud Run API
+   gcloud services enable run.googleapis.com
+
+   # Set default region
+   gcloud config set run/region us-central1
    ```
 
 ### **Step 4: Codecov Setup** (Optional)
@@ -123,8 +155,8 @@ You can manually trigger workflows from the GitHub Actions tab.
 | `test-backend` | Python tests & linting | Ubuntu |
 | `security-scan-python` | Security scanning | Ubuntu |
 | `ml-model-test` | ML model validation | Ubuntu |
-| `deploy-backend` | Heroku deployment | Ubuntu |
-| `docker-build` | Docker image build | Ubuntu |
+| `deploy-backend` | Cloud Run deployment | Ubuntu |
+| `docker-build` | GCR image build | Ubuntu |
 
 ## 🔍 Monitoring & Debugging
 
@@ -155,13 +187,16 @@ pip install -r requirements.txt
 python -c "import joblib; joblib.load('models/cat_clf.pkl')"
 ```
 
-#### **Deployment Issues**
+#### **GCP Issues**
 ```bash
-# Test Firebase locally
-firebase serve
+# Test GCP authentication
+gcloud auth list
 
-# Test Heroku locally
-heroku local web
+# Test Cloud Run locally
+gcloud run services list
+
+# Check service account permissions
+gcloud projects get-iam-policy YOUR_PROJECT_ID
 ```
 
 ## 🚀 Deployment Process
@@ -176,8 +211,9 @@ heroku local web
 2. Pipeline automatically:
    - Builds Flutter web app
    - Deploys to Firebase Hosting
-   - Builds Python backend
-   - Deploys to Heroku
+   - Builds Python backend Docker image
+   - Pushes to Google Container Registry
+   - Deploys to Google Cloud Run
    - Creates GitHub Release
    - Sends notifications
 
@@ -188,11 +224,17 @@ heroku local web
 - Python backend: ~2-3 minutes
 - Full pipeline: ~8-10 minutes
 
+### **GCP Costs** (Estimated)
+- Cloud Run: ~$5-10/month (low traffic)
+- Container Registry: ~$1-2/month
+- Cloud Build: ~$2-5/month
+
 ### **Optimization Tips**
 - Use dependency caching
 - Parallel job execution
 - Selective path triggers
 - Build artifact sharing
+- GCP resource optimization
 
 ## 🔒 Security Features
 
@@ -201,6 +243,12 @@ heroku local web
 - ✅ **Bandit security analysis**
 - ✅ **Safety dependency checks**
 - ✅ **Code quality enforcement**
+
+### **GCP Security**
+- ✅ **Service account authentication**
+- ✅ **IAM role-based access**
+- ✅ **Container security scanning**
+- ✅ **Network security policies**
 
 ### **Rate Limiting**
 - API endpoints: 10 requests/minute
@@ -221,6 +269,12 @@ heroku local web
 - ✅ Monitor deployment logs
 - ✅ Set up rollback procedures
 
+### **GCP Best Practices**
+- ✅ Use service accounts for CI/CD
+- ✅ Implement proper IAM roles
+- ✅ Monitor Cloud Run metrics
+- ✅ Set up cost alerts
+
 ### **Security**
 - ✅ Never commit secrets
 - ✅ Use environment variables
@@ -231,15 +285,30 @@ heroku local web
 
 ### **Pipeline Fails**
 1. Check GitHub Actions logs
-2. Verify secrets are set correctly
+2. Verify GCP secrets are set correctly
 3. Test locally with same environment
 4. Check for dependency issues
 
-### **Deployment Fails**
-1. Check service credentials
-2. Verify service configurations
+### **GCP Deployment Fails**
+1. Check service account permissions
+2. Verify GCP project configuration
 3. Test deployment locally
-4. Check service quotas/limits
+4. Check Cloud Run quotas/limits
+
+### **Common GCP Issues**
+```bash
+# Check service account
+gcloud iam service-accounts list
+
+# Verify permissions
+gcloud projects get-iam-policy YOUR_PROJECT_ID
+
+# Test Cloud Run
+gcloud run services list
+
+# Check logs
+gcloud logging read "resource.type=cloud_run_revision"
+```
 
 ## 📞 Support
 
@@ -249,6 +318,12 @@ For pipeline issues:
 3. Test locally first
 4. Create GitHub issue with logs
 
+For GCP issues:
+1. Check Google Cloud Console
+2. Review Cloud Run logs
+3. Verify IAM permissions
+4. Contact Google Cloud Support
+
 ---
 
-**Your CI/CD pipeline is now ready for professional development! 🚀** 
+**Your CI/CD pipeline is now ready for professional development with Google Cloud Platform! 🚀** 
