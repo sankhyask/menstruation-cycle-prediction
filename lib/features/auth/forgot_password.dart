@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:foresee_cycles/core/services/auth_service.dart';
-import 'package:foresee_cycles/shared/widgets/custom_app_bar.dart';
+//import 'package:foresee_cycles/shared/widgets/custom_app_bar.dart';
 
 // Provider to manage the loading state for the "Send" button.
 final forgotPasswordLoadingProvider = StateProvider<bool>((ref) => false);
@@ -60,7 +60,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
     return Scaffold(
       // Use the reusable CustomAppBar we created earlier.
-      appBar: const CustomAppBar(title: 'Forgot Password'),
+      //appBar: const CustomAppBar(title: 'Forgot Password'),
+      appBar: AppBar(title: const Text('Forgot Password')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Form(

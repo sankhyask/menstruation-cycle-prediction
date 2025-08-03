@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Import the new, separated page widgets
-import 'package:foresee_cycles/features/home/tabs/home_tab.dart';
-import 'package:foresee_cycles/features/home/tabs/calendar_tab.dart';
-import 'package:foresee_cycles/features/home/tabs/chat_tab.dart';
-import 'package:foresee_cycles/features/home/tabs/notes_tab.dart';
-import 'package:foresee_cycles/features/home/tabs/profile_tab.dart';
+//import 'package:foresee_cycles/features/home/tabs/home_tab.dart';
+//import 'package:foresee_cycles/features/home/tabs/calendar_tab.dart';
+//import 'package:foresee_cycles/features/home/tabs/chat_tab.dart';
+//import 'package:foresee_cycles/features/home/tabs/notes_tab.dart';
+//import 'package:foresee_cycles/features/home/tabs/profile_tab.dart';
 import 'package:foresee_cycles/shared/constants/styles.dart';
 
 // Provider to hold the currently selected index of the bottom navigation bar.
@@ -16,13 +16,13 @@ class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   // A list of the widgets to display for each tab.
-  final List<Widget> _pages = const [
-    CalendarTab(),
-    ChatTab(),
-    HomeTab(),
-    NotesTab(),
-    ProfileTab(),
-  ];
+ // final List<Widget> _pages = const [
+   // CalendarTab(),
+   // ChatTab(),
+   // HomeTab(),
+   // NotesTab(),
+    //ProfileTab(),
+  //];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +30,8 @@ class HomeScreen extends ConsumerWidget {
     final currentIndex = ref.watch(homeNavigationProvider);
 
     return Scaffold(
-      body: _pages[currentIndex],
+      body: Center(child: Text('Page $currentIndex')), 
+      //_pages[currentIndex],
       bottomNavigationBar: Container(
         height: 70,
         decoration: const BoxDecoration(
