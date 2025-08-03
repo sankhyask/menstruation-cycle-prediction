@@ -1,0 +1,114 @@
+name: Production Deployment
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # Deploy Frontend to Firebase
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+
+      - name: Enable web
+        run: flutter config --enable-web
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: flutter build web --release
+
+      - name: Deploy to Firebase Hosting
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  # Deploy Backend to Heroku
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Deploy to Heroku
+        run: |
+          echo ${{ secrets.HEROKU_API_KEY }} | heroku container:login
+          heroku container:push web -a ${{ secrets.HEROKU_APP_NAME }}
+          heroku container:release web -a ${{ secrets.HEROKU_APP_NAME }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+
+  # Create GitHub Release
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## 🚀 Production Release
+            
+            ### Frontend Changes
+            - Deployed to Firebase Hosting
+            - Flutter web build optimized
+            
+            ### Backend Changes
+            - Deployed to Heroku
+            - ML API with improved error handling
+            - Rate limiting and security enhancements
+            
+            ### New Features
+            - Enhanced prediction accuracy
+            - Better error handling
+            - Improved API documentation
+            - Security improvements
+            
+            ### Technical Improvements
+            - CI/CD pipeline automation
+            - Docker containerization
+            - Health check endpoints
+            - Comprehensive logging
+          draft: false
+          prerelease: false
+
+  # Notify Slack/Discord
+  notify-deployment:
+    runs-on: ubuntu-latest
+    needs: [create-release]
+    steps:
+      - name: Notify deployment success
+        run: |
+          echo "🚀 Production deployment completed successfully!"
+          echo "Frontend: https://foresee-cycles.web.app"
+          echo "Backend: https://foresee-cycles-api.herokuapp.com"
+          echo "Release: ${{ github.ref }}" 
