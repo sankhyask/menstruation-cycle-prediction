@@ -1,16 +1,16 @@
 # This workflow builds and deploys the Flutter web app to Firebase Hosting.
-# It handles both staging (on push to main) and production (on git tag).
 
-name: Deploy Frontend
+name: Frontend CI/CD
 
 on:
   push:
     branches:
       - main # Triggers on push to the main branch
-    tags:
-      - 'v*' # Triggers on a new version tag (e.g., v1.0.0)
     paths:
+      # Corrected paths to match your project structure
       - 'lib/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
       - '.github/workflows/frontend.yml'
 
 jobs:
@@ -34,30 +34,17 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        working-directory: ./frontend
+        # DELETED: working-directory: ./frontend
 
       - name: Build Flutter Web App
         run: flutter build web --release
-        working-directory: ./frontend
+        # DELETED: working-directory: ./frontend
 
-      # This step deploys to a PREVIEW channel on pushes to main
-      - name: Deploy to Firebase Hosting (Preview)
-        if: github.ref == 'refs/heads/main'
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FORESEE_CYCLES }}'
-          projectId: ${{ secrets.GCP_PROJECT_ID }}
-          entryPoint: ./frontend
-          channelId: 'preview-${{ github.sha }}' # Creates a unique preview URL
-
-      # This step deploys to the LIVE channel on a new version tag
-      - name: Deploy to Firebase Hosting (Production)
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FORESEE_CYCLES }}'
-          projectId: ${{ secrets.GCP_PROJECT_ID }}
-          entryPoint: ./frontend
           channelId: live
+          projectId: ${{ secrets.GCP_PROJECT_ID }}
+          # DELETED: entryPoint: ./frontend
