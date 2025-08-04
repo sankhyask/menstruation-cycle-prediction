@@ -1,5 +1,5 @@
-# Use Python 3.10 slim image for better package compatibility
-FROM python:3.10-slim
+# Use Python 3.9 slim image for maximum package compatibility
+FROM python:3.9-slim
 
 # Set working directory
 WORKDIR /app
