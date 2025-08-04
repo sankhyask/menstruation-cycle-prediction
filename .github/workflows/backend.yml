@@ -43,7 +43,7 @@ jobs:
         run: |
           docker build \
             -t ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/api:${{ github.sha }} \
-            -f backend/Dockerfile backend
+            -f backend/Dockerfile .
           docker push ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT_ID }}/${{ env.REPOSITORY_NAME }}/api:${{ github.sha }}
 
       # This step deploys to a STAGING service on pushes to main
