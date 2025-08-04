@@ -1,11 +1,14 @@
 # This workflow builds and deploys the Flutter web app to Firebase Hosting.
+# It handles both staging (on push to main) and production (on git tag).
 
-name: Frontend CI/CD
+name: Deploy Frontend
 
 on:
   push:
     branches:
       - main # Triggers on push to the main branch
+    tags:
+      - 'v*' # Triggers on a new version tag (e.g., v1.0.0)
     paths:
       # Corrected paths to match your project structure
       - 'lib/**'
@@ -34,17 +37,29 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
-        # DELETED: working-directory: ./frontend
+
+      - name: Upgrade dependencies
+        run: flutter pub upgrade
 
       - name: Build Flutter Web App
         run: flutter build web --release
-        # DELETED: working-directory: ./frontend
 
-      - name: Deploy to Firebase Hosting
+      # This step deploys to a PREVIEW channel on pushes to main
+      - name: Deploy to Firebase Hosting (Preview)
+        if: github.ref == 'refs/heads/main'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FORESEE_CYCLES }}'
-          channelId: live
           projectId: ${{ secrets.GCP_PROJECT_ID }}
-          # DELETED: entryPoint: ./frontend
+          channelId: 'preview-${{ github.sha }}' # Creates a unique preview URL
+
+      # This step deploys to the LIVE channel on a new version tag
+      - name: Deploy to Firebase Hosting (Production)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FORESEE_CYCLES }}'
+          projectId: ${{ secrets.GCP_PROJECT_ID }}
+          channelId: live
