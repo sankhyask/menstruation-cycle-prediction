@@ -80,7 +80,7 @@ google-services.json
 GoogleService-Info.plist
 
 # ML Models (if large)
-*.pkl
+
 *.h5
 *.model
 
