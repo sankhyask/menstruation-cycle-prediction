@@ -38,11 +38,13 @@ RUN useradd --create-home --shell /bin/bash app \
 USER app
 
 # Expose port
-EXPOSE 5000
+# This is now dynamic based on the PORT environment variable from Cloud Run
+EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/api/health || exit 1
+    CMD curl -f http://localhost:8080/api/health || exit 1
 
 # Run the application using the app factory
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "--timeout", "120", "api.app:create_app()"]
+# Updated CMD to use the $PORT variable provided by Cloud Run and added debug logging
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--log-level", "debug", "api.app:create_app()"]
