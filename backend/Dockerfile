@@ -29,7 +29,8 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy application code
 # Corrected path to account for new build context
 COPY backend/api/ ./api/
-COPY models/ ./models/
+# Corrected path for the models directory
+COPY backend/models/ ./models/
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash app \
